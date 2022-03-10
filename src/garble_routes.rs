@@ -1,11 +1,13 @@
-use ipfs_api_backend_hyper::{Error, TryFromUri};
-use ipfs_api_backend_hyper::{IpfsApi, IpfsClient};
+use ipfs_api_backend_hyper::{
+    BackendWithGlobalOptions, Error, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
+};
 // use ipfs_embed::{Config, DefaultParams, Ipfs};
 use futures_util::TryStreamExt;
 use log;
 use std::fs::File;
 use std::io::Cursor;
 use std::io::{Read, Seek, SeekFrom, Write};
+use std::time::Duration;
 use tempfile::Builder;
 use tonic::{Request, Response, Status};
 
@@ -27,16 +29,22 @@ pub struct GarbleApiServerImpl {
 }
 
 trait HasIpfsClient {
-    fn ipfs_client(&self) -> IpfsClient;
+    fn ipfs_client(&self) -> BackendWithGlobalOptions<IpfsClient>;
 }
 
 impl HasIpfsClient for GarbleApiServerImpl {
-    fn ipfs_client(&self) -> IpfsClient {
+    fn ipfs_client(&self) -> BackendWithGlobalOptions<IpfsClient> {
         log::info!(
             "ipfs_client: starting with: {}",
             &self.ipfs_server_multiaddr
         );
-        ipfs_api_backend_hyper::IpfsClient::from_multiaddr_str(&self.ipfs_server_multiaddr).unwrap()
+        BackendWithGlobalOptions::new(
+            ipfs_api_backend_hyper::IpfsClient::from_multiaddr_str(&self.ipfs_server_multiaddr)
+                .unwrap(),
+            GlobalOptions::builder()
+                .timeout(Duration::from_millis(5000))
+                .build(),
+        )
     }
 }
 
