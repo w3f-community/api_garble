@@ -1,5 +1,5 @@
 [submodule "deps/lib_garble"]
-	path = deps/lib_garble
+	path = lib_garble_wrapper/deps/lib_garble
 	url = git@github.com:Interstellar-Network/lib_garble.git
 [submodule "deps/protos"]
 	path = deps/protos
