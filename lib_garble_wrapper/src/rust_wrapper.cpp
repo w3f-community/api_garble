@@ -33,6 +33,20 @@ rust::Vec<u_int8_t> GarbleWrapper::GarbleSkcdFromBufferToBuffer(rust::Vec<u_int8
   return vec;
 }
 
+// TODO
+#if 0
+rust::Vec<u_int8_t> GarbleWrapper::GarbleAndStrippedSkcdFromBufferToBuffer(rust::Vec<u_int8_t> skcd_buffer) const
+{
+  std::string skcd_buf_cpp;
+  std::copy(skcd_buffer.begin(), skcd_buffer.end(), std::back_inserter(skcd_buf_cpp));
+  std::string buf_cpp = interstellar::garblehelper::GarbleSkcdFromBufferToBuffer(skcd_buf_cpp);
+
+  rust::Vec<u_int8_t> vec;
+  std::copy(buf_cpp.begin(), buf_cpp.end(), std::back_inserter(vec));
+  return vec;
+}
+#endif
+
 std::unique_ptr<GarbleWrapper> new_garble_wrapper()
 {
   return std::make_unique<GarbleWrapper>();
