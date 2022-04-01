@@ -23,13 +23,23 @@ pub use cxx;
 #[cxx::bridge]
 pub mod ffi {
 
+    struct StrippedCircuit {
+        circuit_buffer: Vec<u8>,
+        prepackmsg_buffer: Vec<u8>,
+        // the randomize digits, generated on the C++ side(using abseil)
+        digits: Vec<u8>,
+    }
+
     unsafe extern "C++" {
         include!("lib-garble-wrapper/src/rust_wrapper.h");
 
         type GarbleWrapper;
 
         fn new_garble_wrapper() -> UniquePtr<GarbleWrapper>;
-        fn GarbleSkcdToBuffer(&self, skcd_input_path: &str) -> Vec<u8>;
+
+        fn GarbleSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> Vec<u8>;
+        fn GarbleAndStrippedSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> StrippedCircuit;
+        fn PackmsgFromPrepacket(&self, prepackmsg_buffer: &Vec<u8>, message: String) -> Vec<u8>;
     }
 }
 

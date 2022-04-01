@@ -58,6 +58,10 @@ ENV APP_NAME api_garble
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
+RUN apt-get update && apt-get install -y \
+    libfreetype6 \
+    && rm -rf /var/lib/apt/lists/*
+
 # NOTE if "no shared libs to copy" above; we  MUST add a random file else COPY fails with:
 # "copier: stat: ["/usr/local/lib/*.so"]: no such file or directory"
 # cf https://stackoverflow.com/questions/31528384/conditional-copy-add-in-dockerfile
