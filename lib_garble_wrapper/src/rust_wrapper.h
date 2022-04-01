@@ -30,7 +30,7 @@ class GarbleWrapper
 public:
   GarbleWrapper();
 
-  rust::Vec<u_int8_t> GarbleSkcdToBuffer(rust::Str output_skcd_path) const;
+  rust::Vec<u_int8_t> GarbleSkcdFromBufferToBuffer(rust::Vec<u_int8_t> skcd_buffer) const;
 };
 
 std::unique_ptr<GarbleWrapper> new_garble_wrapper();

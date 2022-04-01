@@ -92,22 +92,12 @@ impl GarbleApi for GarbleApiServerImpl {
             .await
             .unwrap();
 
-        let tmp_dir = Builder::new()
-            .prefix("interstellar-garble_routes-garble_ipfs")
-            .tempdir()
-            .unwrap();
-
-        // write the data from IPFS to a temp file
-        let skcd_input_path = tmp_dir.path().join("input.skcd.pb.bin");
-        std::fs::write(&skcd_input_path, skcd_buf).expect("could not write to skcd_input_path");
-
         // TODO class member/Trait for "lib_garble_wrapper::ffi::new_garble_wrapper()"
         let lib_garble_wrapper = tokio::task::spawn_blocking(move || {
             let wrapper = lib_garble_wrapper::ffi::new_garble_wrapper();
 
             // TODO make the C++ API return a buffer?
-            let buf: Vec<u8> =
-                wrapper.GarbleSkcdToBuffer(skcd_input_path.as_os_str().to_str().unwrap());
+            let buf: Vec<u8> = wrapper.GarbleSkcdFromBufferToBuffer(skcd_buf);
 
             buf
         })

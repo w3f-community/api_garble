@@ -22,12 +22,14 @@
 
 GarbleWrapper::GarbleWrapper() {}
 
-rust::Vec<u_int8_t> GarbleWrapper::GarbleSkcdToBuffer(rust::Str skcd_input_path) const
+rust::Vec<u_int8_t> GarbleWrapper::GarbleSkcdFromBufferToBuffer(rust::Vec<u_int8_t> skcd_buffer) const
 {
-  std::string buf = interstellar::garblehelper::GarbleSkcdToBuffer(std::string(skcd_input_path));
+  std::string skcd_buf_cpp;
+  std::copy(skcd_buffer.begin(), skcd_buffer.end(), std::back_inserter(skcd_buf_cpp));
+  std::string buf_cpp = interstellar::garblehelper::GarbleSkcdFromBufferToBuffer(skcd_buf_cpp);
 
   rust::Vec<u_int8_t> vec;
-  std::copy(buf.begin(), buf.end(), std::back_inserter(vec));
+  std::copy(buf_cpp.begin(), buf_cpp.end(), std::back_inserter(vec));
   return vec;
 }
 
