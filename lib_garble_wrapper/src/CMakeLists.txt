@@ -32,6 +32,9 @@ target_link_libraries(rust_wrapper
     rust_cxx
 
     garble_helper
+    packmsg_helper
+    serialize_pgc_lib
+    serialize_packmsg_lib
 )
 
 export_all_target_libs(rust_wrapper)

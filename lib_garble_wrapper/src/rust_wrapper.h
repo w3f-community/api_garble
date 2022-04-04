@@ -30,14 +30,14 @@ class GarbleWrapper
 public:
   GarbleWrapper();
 
-  rust::Vec<u_int8_t> GarbleSkcdFromBufferToBuffer(rust::Vec<u_int8_t> skcd_buffer) const;
+  rust::Vec<u_int8_t> GarbleSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const;
 
   /**
    * return a buffer containing a Protobuf-serialized Prepackmsg
    * It can later be used to create a Packmsg with a given tx message,
    * then finally be sent to a device allow the PGC to be evaluated.
    */
-  rust::Vec<u_int8_t> GarbleAndStrippedSkcdFromBufferToBuffer(rust::Vec<u_int8_t> skcd_buffer) const;
+  rust::Vec<u_int8_t> GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const;
 };
 
 std::unique_ptr<GarbleWrapper> new_garble_wrapper();

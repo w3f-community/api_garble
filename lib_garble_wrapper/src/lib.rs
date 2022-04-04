@@ -29,7 +29,9 @@ pub mod ffi {
         type GarbleWrapper;
 
         fn new_garble_wrapper() -> UniquePtr<GarbleWrapper>;
-        fn GarbleSkcdFromBufferToBuffer(&self, skcd_buffer: Vec<u8>) -> Vec<u8>;
+
+        fn GarbleSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> Vec<u8>;
+        fn GarbleAndStrippedSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> Vec<u8>;
     }
 }
 

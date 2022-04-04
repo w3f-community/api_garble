@@ -19,33 +19,45 @@
 #include <functional>
 
 #include "garble_helper.h"
+#include "packmsg_helper.h"
+#include "serialize_packmsg/serialize.h"
+#include "serialize_pgc/serialize.h"
 
 GarbleWrapper::GarbleWrapper() {}
 
-rust::Vec<u_int8_t> GarbleWrapper::GarbleSkcdFromBufferToBuffer(rust::Vec<u_int8_t> skcd_buffer) const
+rust::Vec<u_int8_t> GarbleWrapper::GarbleSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const
 {
+  // copy rust::Vec -> std::vector
   std::string skcd_buf_cpp;
   std::copy(skcd_buffer.begin(), skcd_buffer.end(), std::back_inserter(skcd_buf_cpp));
-  std::string buf_cpp = interstellar::garblehelper::GarbleSkcdFromBufferToBuffer(skcd_buf_cpp);
+
+  interstellar::garble::ParallelGarbledCircuit pgc = interstellar::garble::GarbleSkcdFromBuffer(skcd_buf_cpp);
+  std::string pgarbled_buf_cpp = interstellar::garble::Serialize(pgc);
 
   rust::Vec<u_int8_t> vec;
-  std::copy(buf_cpp.begin(), buf_cpp.end(), std::back_inserter(vec));
+  std::copy(pgarbled_buf_cpp.begin(), pgarbled_buf_cpp.end(), std::back_inserter(vec));
   return vec;
 }
 
-// TODO
-#if 0
-rust::Vec<u_int8_t> GarbleWrapper::GarbleAndStrippedSkcdFromBufferToBuffer(rust::Vec<u_int8_t> skcd_buffer) const
+rust::Vec<u_int8_t> GarbleWrapper::GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const
 {
+  // copy rust::Vec -> std::vector
   std::string skcd_buf_cpp;
   std::copy(skcd_buffer.begin(), skcd_buffer.end(), std::back_inserter(skcd_buf_cpp));
-  std::string buf_cpp = interstellar::garblehelper::GarbleSkcdFromBufferToBuffer(skcd_buf_cpp);
+
+  // TODO return tuple(pgc serialized, pre_packmsg serialized, digits)
+  interstellar::garble::ParallelGarbledCircuit pgc;
+  interstellar::packmsg::PrePackmsg pre_packmsg;
+  std::vector<uint8_t> digits;
+  interstellar::packmsg::GarbleAndStrippedSkcdFromBuffer(skcd_buf_cpp, &pgc, &pre_packmsg,
+                                                         &digits);
+
+  auto prepackmsg_buf_cpp = interstellar::packmsg::Serialize(pre_packmsg);
 
   rust::Vec<u_int8_t> vec;
-  std::copy(buf_cpp.begin(), buf_cpp.end(), std::back_inserter(vec));
+  std::copy(prepackmsg_buf_cpp.begin(), prepackmsg_buf_cpp.end(), std::back_inserter(vec));
   return vec;
 }
-#endif
 
 std::unique_ptr<GarbleWrapper> new_garble_wrapper()
 {

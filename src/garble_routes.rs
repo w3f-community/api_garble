@@ -29,7 +29,9 @@ use tonic::{Request, Response, Status};
 
 use interstellarpbapigarble::garble_api_server::GarbleApi;
 use interstellarpbapigarble::garble_api_server::GarbleApiServer;
-use interstellarpbapigarble::{GarbleIpfsReply, GarbleIpfsRequest};
+use interstellarpbapigarble::{
+    GarbleAndStripIpfsReply, GarbleAndStripIpfsRequest, GarbleIpfsReply, GarbleIpfsRequest,
+};
 
 use lib_garble_wrapper::cxx::UniquePtr;
 use lib_garble_wrapper::ffi;
@@ -96,8 +98,7 @@ impl GarbleApi for GarbleApiServerImpl {
         let lib_garble_wrapper = tokio::task::spawn_blocking(move || {
             let wrapper = lib_garble_wrapper::ffi::new_garble_wrapper();
 
-            // TODO make the C++ API return a buffer?
-            let buf: Vec<u8> = wrapper.GarbleSkcdFromBufferToBuffer(skcd_buf);
+            let buf: Vec<u8> = wrapper.GarbleSkcdFromBuffer(skcd_buf);
 
             buf
         })
@@ -110,6 +111,44 @@ impl GarbleApi for GarbleApiServerImpl {
         let ipfs_result = self.ipfs_client().add(data).await.unwrap();
 
         let reply = GarbleIpfsReply {
+            pgarbled_cid: format!("{}", ipfs_result.hash),
+        };
+
+        Ok(Response::new(reply))
+    }
+
+    async fn garble_and_strip_ipfs(
+        &self,
+        request: Request<GarbleAndStripIpfsRequest>,
+    ) -> Result<Response<GarbleAndStripIpfsReply>, Status> {
+        log::info!("Got a request from {:?}", request.remote_addr());
+        let skcd_cid = &request.get_ref().skcd_cid;
+
+        let skcd_buf = self
+            .ipfs_client()
+            .cat(&skcd_cid)
+            .map_ok(|chunk| chunk.to_vec())
+            .try_concat()
+            .await
+            .unwrap();
+
+        // TODO class member/Trait for "lib_garble_wrapper::ffi::new_garble_wrapper()"
+        let lib_garble_wrapper = tokio::task::spawn_blocking(move || {
+            let wrapper = lib_garble_wrapper::ffi::new_garble_wrapper();
+
+            let buf: Vec<u8> = wrapper.GarbleAndStrippedSkcdFromBuffer(skcd_buf);
+
+            buf
+        })
+        .await
+        .unwrap();
+
+        let data = Cursor::new(lib_garble_wrapper);
+
+        // TODO error handling, or at least logging
+        let ipfs_result = self.ipfs_client().add(data).await.unwrap();
+
+        let reply = GarbleAndStripIpfsReply {
             pgarbled_cid: format!("{}", ipfs_result.hash),
         };
 
