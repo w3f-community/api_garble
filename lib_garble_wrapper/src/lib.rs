@@ -32,6 +32,7 @@ pub mod ffi {
 
         fn GarbleSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> Vec<u8>;
         fn GarbleAndStrippedSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> Vec<u8>;
+        fn PackmsgFromPrepacket(&self, prepackmsg_buffer: Vec<u8>, message: String) -> Vec<u8>;
     }
 }
 

@@ -38,6 +38,12 @@ public:
    * then finally be sent to a device allow the PGC to be evaluated.
    */
   rust::Vec<u_int8_t> GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const;
+
+  /**
+   * param: prepackmsg_buffer: a Prepackmsg = the returned value from "GarbleAndStrippedSkcdFromBuffer"
+   * param:
+   */
+  rust::Vec<u_int8_t> PackmsgFromPrepacket(rust::Vec<u_int8_t> prepackmsg_buffer, rust::String message) const;
 };
 
 std::unique_ptr<GarbleWrapper> new_garble_wrapper();

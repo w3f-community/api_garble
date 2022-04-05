@@ -25,6 +25,7 @@ use std::io::Cursor;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::time::Duration;
 use tempfile::Builder;
+use tokio_stream::wrappers;
 use tonic::{Request, Response, Status};
 
 use interstellarpbapigarble::garble_api_server::GarbleApi;
@@ -123,6 +124,7 @@ impl GarbleApi for GarbleApiServerImpl {
     ) -> Result<Response<GarbleAndStripIpfsReply>, Status> {
         log::info!("Got a request from {:?}", request.remote_addr());
         let skcd_cid = &request.get_ref().skcd_cid;
+        let tx_msg = request.get_ref().tx_msg.to_string();
 
         let skcd_buf = self
             .ipfs_client()
@@ -138,7 +140,10 @@ impl GarbleApi for GarbleApiServerImpl {
 
             let buf: Vec<u8> = wrapper.GarbleAndStrippedSkcdFromBuffer(skcd_buf);
 
-            buf
+            // NOTE: for now it does the 2 steps "strip" + "packmsg" in the same route but that is a bit pointless
+            let packmsg_buf = wrapper.PackmsgFromPrepacket(buf, tx_msg);
+
+            packmsg_buf
         })
         .await
         .unwrap();

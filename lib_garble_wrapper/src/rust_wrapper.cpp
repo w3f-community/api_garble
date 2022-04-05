@@ -23,6 +23,8 @@
 #include "serialize_packmsg/serialize.h"
 #include "serialize_pgc/serialize.h"
 
+using namespace interstellar;
+
 GarbleWrapper::GarbleWrapper() {}
 
 rust::Vec<u_int8_t> GarbleWrapper::GarbleSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const
@@ -31,8 +33,8 @@ rust::Vec<u_int8_t> GarbleWrapper::GarbleSkcdFromBuffer(rust::Vec<u_int8_t> skcd
   std::string skcd_buf_cpp;
   std::copy(skcd_buffer.begin(), skcd_buffer.end(), std::back_inserter(skcd_buf_cpp));
 
-  interstellar::garble::ParallelGarbledCircuit pgc = interstellar::garble::GarbleSkcdFromBuffer(skcd_buf_cpp);
-  std::string pgarbled_buf_cpp = interstellar::garble::Serialize(pgc);
+  garble::ParallelGarbledCircuit pgc = garble::GarbleSkcdFromBuffer(skcd_buf_cpp);
+  std::string pgarbled_buf_cpp = garble::Serialize(pgc);
 
   rust::Vec<u_int8_t> vec;
   std::copy(pgarbled_buf_cpp.begin(), pgarbled_buf_cpp.end(), std::back_inserter(vec));
@@ -46,16 +48,34 @@ rust::Vec<u_int8_t> GarbleWrapper::GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_i
   std::copy(skcd_buffer.begin(), skcd_buffer.end(), std::back_inserter(skcd_buf_cpp));
 
   // TODO return tuple(pgc serialized, pre_packmsg serialized, digits)
-  interstellar::garble::ParallelGarbledCircuit pgc;
-  interstellar::packmsg::PrePackmsg pre_packmsg;
+  garble::ParallelGarbledCircuit pgc;
+  packmsg::PrePackmsg pre_packmsg;
   std::vector<uint8_t> digits;
-  interstellar::packmsg::GarbleAndStrippedSkcdFromBuffer(skcd_buf_cpp, &pgc, &pre_packmsg,
-                                                         &digits);
+  packmsg::GarbleAndStrippedSkcdFromBuffer(skcd_buf_cpp, &pgc, &pre_packmsg,
+                                           &digits);
 
-  auto prepackmsg_buf_cpp = interstellar::packmsg::Serialize(pre_packmsg);
+  auto prepackmsg_buf_cpp = packmsg::SerializePrepackmsg(pre_packmsg);
 
   rust::Vec<u_int8_t> vec;
   std::copy(prepackmsg_buf_cpp.begin(), prepackmsg_buf_cpp.end(), std::back_inserter(vec));
+  return vec;
+}
+
+rust::Vec<u_int8_t> GarbleWrapper::PackmsgFromPrepacket(rust::Vec<u_int8_t> prepackmsg_buffer, rust::String message) const
+{
+  // copy rust::Vec -> std::vector
+  std::string prepackmsg_buf_cpp;
+  std::copy(prepackmsg_buffer.begin(), prepackmsg_buffer.end(), std::back_inserter(prepackmsg_buf_cpp));
+
+  packmsg::PrePackmsg prepackmsg = packmsg::DeserializePrepackmsgFromBuffer(prepackmsg_buf_cpp);
+
+  std::wstring message_wstring_copy(message.begin(), message.end());
+  packmsg::Packmsg packmsg = packmsg::PackmsgFromPrepacket(prepackmsg, message_wstring_copy);
+
+  auto packmsg_buf_cpp = packmsg::SerializePackmsg(packmsg);
+
+  rust::Vec<u_int8_t> vec;
+  std::copy(packmsg_buf_cpp.begin(), packmsg_buf_cpp.end(), std::back_inserter(vec));
   return vec;
 }
 
