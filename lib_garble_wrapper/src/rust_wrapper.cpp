@@ -18,6 +18,10 @@
 
 #include <functional>
 
+// generated
+// needed only if shared structs
+#include "lib-garble-wrapper/src/lib.rs.h"
+
 #include "garble_helper.h"
 #include "packmsg_helper.h"
 #include "serialize_packmsg/serialize.h"
@@ -41,7 +45,7 @@ rust::Vec<u_int8_t> GarbleWrapper::GarbleSkcdFromBuffer(rust::Vec<u_int8_t> skcd
   return vec;
 }
 
-rust::Vec<u_int8_t> GarbleWrapper::GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const
+StrippedCircuit GarbleWrapper::GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const
 {
   // copy rust::Vec -> std::vector
   std::string skcd_buf_cpp;
@@ -54,14 +58,22 @@ rust::Vec<u_int8_t> GarbleWrapper::GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_i
   packmsg::GarbleAndStrippedSkcdFromBuffer(skcd_buf_cpp, &pgc, &pre_packmsg,
                                            &digits);
 
+  std::string pgarbled_buf_cpp = garble::Serialize(pgc);
   auto prepackmsg_buf_cpp = packmsg::SerializePrepackmsg(pre_packmsg);
 
-  rust::Vec<u_int8_t> vec;
-  std::copy(prepackmsg_buf_cpp.begin(), prepackmsg_buf_cpp.end(), std::back_inserter(vec));
-  return vec;
+  rust::Vec<u_int8_t> pgarbled_buf_vec;
+  std::copy(pgarbled_buf_cpp.begin(), pgarbled_buf_cpp.end(), std::back_inserter(pgarbled_buf_vec));
+
+  rust::Vec<u_int8_t> prepackmsg_buf_vec;
+  std::copy(prepackmsg_buf_cpp.begin(), prepackmsg_buf_cpp.end(), std::back_inserter(prepackmsg_buf_vec));
+
+  StrippedCircuit stripped_circuit;
+  stripped_circuit.circuit_buffer = pgarbled_buf_vec;
+  stripped_circuit.prepackmsg_buffer = prepackmsg_buf_vec;
+  return stripped_circuit;
 }
 
-rust::Vec<u_int8_t> GarbleWrapper::PackmsgFromPrepacket(rust::Vec<u_int8_t> prepackmsg_buffer, rust::String message) const
+rust::Vec<u_int8_t> GarbleWrapper::PackmsgFromPrepacket(const rust::Vec<u_int8_t> &prepackmsg_buffer, rust::String message) const
 {
   // copy rust::Vec -> std::vector
   std::string prepackmsg_buf_cpp;

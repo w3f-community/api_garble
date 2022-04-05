@@ -138,20 +138,24 @@ impl GarbleApi for GarbleApiServerImpl {
         let lib_garble_wrapper = tokio::task::spawn_blocking(move || {
             let wrapper = lib_garble_wrapper::ffi::new_garble_wrapper();
 
-            let buf: Vec<u8> = wrapper.GarbleAndStrippedSkcdFromBuffer(skcd_buf);
+            let stripped_circuit = wrapper.GarbleAndStrippedSkcdFromBuffer(skcd_buf);
 
             // NOTE: for now it does the 2 steps "strip" + "packmsg" in the same route but that is a bit pointless
-            let packmsg_buf = wrapper.PackmsgFromPrepacket(buf, tx_msg);
+            let packmsg_buf =
+                wrapper.PackmsgFromPrepacket(&stripped_circuit.prepackmsg_buffer, tx_msg);
 
-            packmsg_buf
+            (stripped_circuit.circuit_buffer, packmsg_buf)
         })
         .await
         .unwrap();
 
-        let data = Cursor::new(lib_garble_wrapper);
-
+        let circuit_cursor = Cursor::new(lib_garble_wrapper.0);
         // TODO error handling, or at least logging
-        let ipfs_result = self.ipfs_client().add(data).await.unwrap();
+        let ipfs_result = self.ipfs_client().add(circuit_cursor).await.unwrap();
+
+        let packmsg_cursor = Cursor::new(lib_garble_wrapper.1);
+        // TODO error handling, or at least logging
+        let ipfs_result = self.ipfs_client().add(packmsg_cursor).await.unwrap();
 
         let reply = GarbleAndStripIpfsReply {
             pgarbled_cid: format!("{}", ipfs_result.hash),

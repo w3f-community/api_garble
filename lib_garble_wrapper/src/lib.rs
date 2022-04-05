@@ -23,6 +23,11 @@ pub use cxx;
 #[cxx::bridge]
 pub mod ffi {
 
+    struct StrippedCircuit {
+        circuit_buffer: Vec<u8>,
+        prepackmsg_buffer: Vec<u8>,
+    }
+
     unsafe extern "C++" {
         include!("lib-garble-wrapper/src/rust_wrapper.h");
 
@@ -31,8 +36,8 @@ pub mod ffi {
         fn new_garble_wrapper() -> UniquePtr<GarbleWrapper>;
 
         fn GarbleSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> Vec<u8>;
-        fn GarbleAndStrippedSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> Vec<u8>;
-        fn PackmsgFromPrepacket(&self, prepackmsg_buffer: Vec<u8>, message: String) -> Vec<u8>;
+        fn GarbleAndStrippedSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> StrippedCircuit;
+        fn PackmsgFromPrepacket(&self, prepackmsg_buffer: &Vec<u8>, message: String) -> Vec<u8>;
     }
 }
 
