@@ -5,7 +5,7 @@
 # NOTE: when dev/test: if you get "ninja: error: loading 'build.ninja': No such file or directory"
 # -> FIX: find target/release/ -type d -name "*-wrapper-*" -exec rm -rf {} \;
 # b/c docker build has no support for volume contrary to podman/buildah
-# docker run -it --name api_garble --rm -p 3000:3000 --env RUST_LOG="warn,info,debug" api_garble:dev /usr/local/bin/api_garble --ipfs-server-multiaddr /ip4/172.17.0.1/tcp/5001
+# docker run -it --name api_garble --rm -p 3001:3000 --env RUST_LOG="warn,info,debug" api_garble:dev /usr/local/bin/api_garble --ipfs-server-multiaddr /ip4/172.17.0.1/tcp/5001
 
 FROM rust:1.59 as builder
 
@@ -67,5 +67,7 @@ RUN apt-get update && apt-get install -y \
 # cf https://stackoverflow.com/questions/31528384/conditional-copy-add-in-dockerfile
 COPY --from=builder /usr/local/lib/no_shared_lib_to_copy /usr/local/lib/*.so /usr/local/lib/
 COPY --from=builder /usr/local/cargo/bin/$APP_NAME /usr/local/bin/$APP_NAME
+# TODO use CMake install and DO NOT hardcode a path
+COPY --from=builder /usr/src/app/lib_garble_wrapper/deps/lib_garble/data /usr/src/app/lib_garble_wrapper/deps/lib_garble/data/
 
 CMD ["sh", "-c", "$APP_NAME"]
