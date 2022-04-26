@@ -15,29 +15,20 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use ipfs_api_backend_hyper::{
-    BackendWithGlobalOptions, Error, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
+    BackendWithGlobalOptions, GlobalOptions, IpfsApi, IpfsClient, TryFromUri,
 };
 // use ipfs_embed::{Config, DefaultParams, Ipfs};
 use futures_util::TryStreamExt;
-use log;
-use std::fs::File;
 use std::io::Cursor;
-use std::io::{Read, Seek, SeekFrom, Write};
 use std::time::Duration;
-use tempfile::Builder;
-use tokio_stream::wrappers;
 use tonic::{Request, Response, Status};
 
 use interstellarpbapigarble::garble_api_server::GarbleApi;
-use interstellarpbapigarble::garble_api_server::GarbleApiServer;
+pub use interstellarpbapigarble::garble_api_server::GarbleApiServer;
 use interstellarpbapigarble::{
     CircuitServerMetadata, GarbleAndStripIpfsReply, GarbleAndStripIpfsRequest, GarbleIpfsReply,
     GarbleIpfsRequest,
 };
-
-use lib_garble_wrapper::cxx::UniquePtr;
-use lib_garble_wrapper::ffi;
-use lib_garble_wrapper::ffi::GarbleWrapper;
 
 pub mod interstellarpbapigarble {
     tonic::include_proto!("interstellarpbapigarble");
@@ -90,7 +81,7 @@ impl GarbleApi for GarbleApiServerImpl {
         //     .unwrap();
         let skcd_buf = self
             .ipfs_client()
-            .cat(&skcd_cid)
+            .cat(skcd_cid)
             .map_ok(|chunk| chunk.to_vec())
             .try_concat()
             .await
@@ -113,7 +104,7 @@ impl GarbleApi for GarbleApiServerImpl {
         let ipfs_result = self.ipfs_client().add(data).await.unwrap();
 
         let reply = GarbleIpfsReply {
-            pgarbled_cid: format!("{}", ipfs_result.hash),
+            pgarbled_cid: ipfs_result.hash,
         };
 
         Ok(Response::new(reply))
@@ -129,7 +120,7 @@ impl GarbleApi for GarbleApiServerImpl {
 
         let skcd_buf = self
             .ipfs_client()
-            .cat(&skcd_cid)
+            .cat(skcd_cid)
             .map_ok(|chunk| chunk.to_vec())
             .try_concat()
             .await
@@ -166,8 +157,8 @@ impl GarbleApi for GarbleApiServerImpl {
         let packmsg_ipfs_result = self.ipfs_client().add(packmsg_cursor).await.unwrap();
 
         let reply = GarbleAndStripIpfsReply {
-            pgarbled_cid: format!("{}", pgarbled_ipfs_result.hash),
-            packmsg_cid: format!("{}", packmsg_ipfs_result.hash),
+            pgarbled_cid: pgarbled_ipfs_result.hash,
+            packmsg_cid: packmsg_ipfs_result.hash,
             server_metadata: Some(CircuitServerMetadata {
                 digits: lib_garble_wrapper.2,
             }),

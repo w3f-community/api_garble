@@ -7,24 +7,9 @@
 # b/c docker build has no support for volume contrary to podman/buildah
 # docker run -it --name api_garble --rm -p 3001:3000 --env RUST_LOG="warn,info,debug" api_garble:dev /usr/local/bin/api_garble --ipfs-server-multiaddr /ip4/172.17.0.1/tcp/5001
 
-FROM rust:1.59 as builder
+FROM ghcr.io/interstellar-network/ci-images/ci-base-rust:dev as builder
 
 WORKDIR /usr/src/app
-
-# prereq: install CMake
-ENV PATH=$PATH:/opt/cmake/bin/
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.22.3/cmake-3.22.3-linux-x86_64.sh && \
-    chmod +x cmake-3.22.3-linux-x86_64.sh && \
-    mkdir /opt/cmake/ && \
-    ./cmake-3.22.3-linux-x86_64.sh --skip-license --prefix=/opt/cmake/ && \
-    rm cmake-*.sh && \
-    cmake -version
-
-# prereq: install Ninja (ninja-build)
-RUN wget https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip && \
-    unzip ninja-linux.zip -d /usr/local/bin/ && \
-    rm ninja-linux.zip && \
-    ninja --version
 
 # "error: 'rustfmt' is not installed for the toolchain '1.59.0-x86_64-unknown-linux-gnu'"
 RUN rustup component add rustfmt
