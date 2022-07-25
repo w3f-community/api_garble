@@ -84,8 +84,8 @@ rust::Vec<u_int8_t> GarbleWrapper::PackmsgFromPrepacket(const rust::Vec<u_int8_t
 
   packmsg::PrePackmsg prepackmsg = packmsg::DeserializePrepackmsgFromBuffer(prepackmsg_buf_cpp);
 
-  std::wstring message_wstring_copy(message.begin(), message.end());
-  packmsg::Packmsg packmsg = packmsg::PackmsgFromPrepacket(prepackmsg, message_wstring_copy);
+  std::string message_cpp(message.begin(), message.end());
+  packmsg::Packmsg packmsg = packmsg::PackmsgFromPrepacket(prepackmsg, message_cpp);
 
   auto packmsg_buf_cpp = packmsg::SerializePackmsg(packmsg);
 
