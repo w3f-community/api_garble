@@ -45,18 +45,20 @@ rust::Vec<u_int8_t> GarbleWrapper::GarbleSkcdFromBuffer(rust::Vec<u_int8_t> skcd
   return vec;
 }
 
-StrippedCircuit GarbleWrapper::GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const
+StrippedCircuit GarbleWrapper::GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer, rust::Vec<u_int8_t> digits) const
 {
   // copy rust::Vec -> std::vector
   std::string skcd_buf_cpp;
   std::copy(skcd_buffer.begin(), skcd_buffer.end(), std::back_inserter(skcd_buf_cpp));
 
+  std::vector<uint8_t> digits_cpp;
+  std::copy(digits.begin(), digits.end(), std::back_inserter(digits_cpp));
+
   // TODO return tuple(pgc serialized, pre_packmsg serialized, digits)
   garble::ParallelGarbledCircuit pgc;
   packmsg::PrePackmsg pre_packmsg;
-  std::vector<uint8_t> digits;
   packmsg::GarbleAndStrippedSkcdFromBuffer(skcd_buf_cpp, &pgc, &pre_packmsg,
-                                           &digits);
+                                           digits_cpp);
 
   std::string pgarbled_buf_cpp = garble::Serialize(pgc);
   auto prepackmsg_buf_cpp = packmsg::SerializePrepackmsg(pre_packmsg);
@@ -72,7 +74,6 @@ StrippedCircuit GarbleWrapper::GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_
   StrippedCircuit stripped_circuit;
   stripped_circuit.circuit_buffer = pgarbled_buf_vec;
   stripped_circuit.prepackmsg_buffer = prepackmsg_buf_vec;
-  stripped_circuit.digits = digits_vec;
   return stripped_circuit;
 }
 

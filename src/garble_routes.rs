@@ -26,8 +26,7 @@ use tonic::{Request, Response, Status};
 use interstellarpbapigarble::garble_api_server::GarbleApi;
 pub use interstellarpbapigarble::garble_api_server::GarbleApiServer;
 use interstellarpbapigarble::{
-    CircuitServerMetadata, GarbleAndStripIpfsReply, GarbleAndStripIpfsRequest, GarbleIpfsReply,
-    GarbleIpfsRequest,
+    GarbleAndStripIpfsReply, GarbleAndStripIpfsRequest, GarbleIpfsReply, GarbleIpfsRequest,
 };
 
 pub mod interstellarpbapigarble {
@@ -117,6 +116,13 @@ impl GarbleApi for GarbleApiServerImpl {
         log::info!("Got a request from {:?}", request.remote_addr());
         let skcd_cid = &request.get_ref().skcd_cid;
         let tx_msg = request.get_ref().tx_msg.to_string();
+        let digits = request
+            .get_ref()
+            .server_metadata
+            .as_ref()
+            .unwrap()
+            .digits
+            .clone();
 
         let skcd_buf = self
             .ipfs_client()
@@ -130,20 +136,16 @@ impl GarbleApi for GarbleApiServerImpl {
         let lib_garble_wrapper = tokio::task::spawn_blocking(move || {
             let wrapper = lib_garble_wrapper::ffi::new_garble_wrapper();
 
-            let stripped_circuit = wrapper.GarbleAndStrippedSkcdFromBuffer(skcd_buf);
+            log::debug!("digits: {:?}", digits);
+            let stripped_circuit = wrapper.GarbleAndStrippedSkcdFromBuffer(skcd_buf, digits);
 
             // NOTE: for now it does the 2 steps "strip" + "packmsg" in the same route
             // - fast enough to generate+garble+strip on the fly
             // - avoid storing a "full" circuit only to strip it later
             let packmsg_buf =
                 wrapper.PackmsgFromPrepacket(&stripped_circuit.prepackmsg_buffer, tx_msg);
-            log::debug!("stripped_circuit digits: {:?}", stripped_circuit.digits);
 
-            (
-                stripped_circuit.circuit_buffer,
-                packmsg_buf,
-                stripped_circuit.digits,
-            )
+            (stripped_circuit.circuit_buffer, packmsg_buf)
         })
         .await
         .unwrap();
@@ -159,9 +161,6 @@ impl GarbleApi for GarbleApiServerImpl {
         let reply = GarbleAndStripIpfsReply {
             pgarbled_cid: pgarbled_ipfs_result.hash,
             packmsg_cid: packmsg_ipfs_result.hash,
-            server_metadata: Some(CircuitServerMetadata {
-                digits: lib_garble_wrapper.2,
-            }),
         };
 
         Ok(Response::new(reply))
