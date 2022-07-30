@@ -176,6 +176,9 @@ async fn endpoint_garble_and_strip_ipfs_grpc_web() {
     let input = interstellarpbapigarble::GarbleAndStripIpfsRequest {
         skcd_cid: ipfs_result.hash.to_string(),
         tx_msg: "test message".to_owned(),
+        server_metadata: Some(interstellarpbapigarble::CircuitServerMetadata {
+            digits: vec![4, 2],
+        }),
     };
     let body_buf = encode_body(input);
 

@@ -26,8 +26,6 @@ pub mod ffi {
     struct StrippedCircuit {
         circuit_buffer: Vec<u8>,
         prepackmsg_buffer: Vec<u8>,
-        // the randomize digits, generated on the C++ side(using abseil)
-        digits: Vec<u8>,
     }
 
     unsafe extern "C++" {
@@ -38,7 +36,11 @@ pub mod ffi {
         fn new_garble_wrapper() -> UniquePtr<GarbleWrapper>;
 
         fn GarbleSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> Vec<u8>;
-        fn GarbleAndStrippedSkcdFromBuffer(&self, skcd_buffer: Vec<u8>) -> StrippedCircuit;
+        fn GarbleAndStrippedSkcdFromBuffer(
+            &self,
+            skcd_buffer: Vec<u8>,
+            digits: Vec<u8>,
+        ) -> StrippedCircuit;
         fn PackmsgFromPrepacket(&self, prepackmsg_buffer: &Vec<u8>, message: String) -> Vec<u8>;
     }
 }

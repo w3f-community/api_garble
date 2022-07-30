@@ -40,7 +40,7 @@ public:
    * It can later be used to create a Packmsg with a given tx message,
    * then finally be sent to a device allow the PGC to be evaluated.
    */
-  StrippedCircuit GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer) const;
+  StrippedCircuit GarbleAndStrippedSkcdFromBuffer(rust::Vec<u_int8_t> skcd_buffer, rust::Vec<u_int8_t> digits) const;
 
   /**
    * param: prepackmsg_buffer: a Prepackmsg = the returned value from "GarbleAndStrippedSkcdFromBuffer"
