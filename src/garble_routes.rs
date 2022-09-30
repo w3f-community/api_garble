@@ -29,6 +29,8 @@ use interstellarpbapigarble::{
     GarbleAndStripIpfsReply, GarbleAndStripIpfsRequest, GarbleIpfsReply, GarbleIpfsRequest,
 };
 
+// https://github.com/neoeinstein/protoc-gen-prost/issues/26
+#[allow(clippy::derive_partial_eq_without_eq)]
 pub mod interstellarpbapigarble {
     tonic::include_proto!("interstellarpbapigarble");
 }
