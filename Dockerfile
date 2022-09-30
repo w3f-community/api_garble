@@ -7,7 +7,7 @@
 # b/c docker build has no support for volume contrary to podman/buildah
 # docker run -it --name api_garble --rm -p 3001:3000 --env RUST_LOG="warn,info,debug" api_garble:dev /usr/local/bin/api_garble --ipfs-server-multiaddr /ip4/172.17.0.1/tcp/5001
 
-FROM ghcr.io/interstellar-network/ci-images/ci-base-rust:dev as builder
+FROM ghcr.io/interstellar-network/ci-images/ci-base-rust:v2 as builder
 
 WORKDIR /usr/src/app
 
